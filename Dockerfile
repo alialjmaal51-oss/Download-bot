@@ -1,31 +1,18 @@
-FROM python:3.10-slim
+# استخدام نسخة بايثون رسمية وخفيفة
+FROM python:3.9-slim
 
-# تثبيت الاعتماديات النظامية
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+# تحديث النظام وتثبيت أدوات أساسية
+RUN apt-get update && apt-get install -y ffmpeg && apt-get clean
 
-# إنشاء مستخدم غير جذري
-RUN useradd -m -u 1000 user
+# تحديد مجلد العمل داخل السيرفر
+WORKDIR /app
 
-# التبديل إلى المستخدم
-USER user
+# نسخ ملف المتطلبات وتثبيتها
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# تعيين متغيرات البيئة
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
+# نسخ باقي ملفات المشروع
+COPY . .
 
-# إنشاء مجلد العمل
-WORKDIR $HOME/app
-
-# نسخ ملف المتطلبات
-COPY --chown=user requirements.txt $HOME/app/requirements.txt
-
-# تثبيت الاعتماديات
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
-
-# نسخ باقي الملفات
-COPY --chown=user . $HOME/app
-
-# تشغيل التطبيق
+# أمر تشغيل البوت
 CMD ["python", "app.py"]
